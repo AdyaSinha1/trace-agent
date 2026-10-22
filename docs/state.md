@@ -1,7 +1,9 @@
 # Trace — Workflow State Model (implement at S7; this doc is the contract)
 
-Plain-Python or LangGraph state machine is decided at S7 (LangGraph only if it works within
-~10 minutes; otherwise plain Python and described accurately in the README).
+Plain-Python or LangGraph state machine is decided at S7. LangGraph gets a hard **10-minute
+wall-clock budget** to make the state-machine tests pass; **one quick retry is allowed** (so a
+trivial typo doesn't force the fallback), then fall back to plain Python. The README states which
+one was used.
 
 ## State (Pydantic)
 
@@ -37,8 +39,11 @@ Plain-Python or LangGraph state machine is decided at S7 (LangGraph only if it w
 - `JUDGING -> AWAITING_EVIDENCE`: otherwise; the next-test table is shown.
 - `AWAITING_EVIDENCE -> INVESTIGATING`: new evidence injected via the UI button → ledger append
   (kind = `injected`), round + 1, full re-run.
-- `DONE -> approval = pending`: when an alert draft is requested. Alerts are drafts only and are
-  NEVER sent; a human approves or rejects. Terminal states do not loop.
+- `DONE -> approval = pending`: when an alert draft is requested. The draft is **template-generated
+  from the Judge output — no LLM involved**. The template must state: these are evidence scores and
+  not probabilities; the data is simulated; no source is confirmed. It cites the ledger IDs that
+  support it. Alerts are drafts only and are **NEVER sent**; a human approves or rejects.
+  Terminal states do not loop.
 
 ## Ranking snapshots
 Every Judge run appends a `RankingSnapshot`: per-hypothesis evidence scores, leader, the evidence

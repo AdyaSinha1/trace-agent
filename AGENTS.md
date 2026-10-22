@@ -51,7 +51,9 @@ reported as a confident attribution.
 ## State machine (details: docs/state.md)
 Max 2 rounds, no infinite loop. Scores only from the Judge. Every claim cites existing IDs.
 An unverified source is never shown as confirmed. INSUFFICIENT_EVIDENCE is reachable and tested.
-Alerts are drafts only and are NEVER sent; a human approves or rejects.
+Alert drafts are template-generated from Judge output (no LLM), state that scores are evidence
+scores not probabilities, that data is simulated, that no source is confirmed, and cite ledger
+IDs. Drafts are NEVER sent; a human approves or rejects.
 
 ## Honesty rules
 - Data is simulated; weights are expert priors, not fitted; scores are not probabilities;
@@ -61,15 +63,20 @@ Alerts are drafts only and are NEVER sent; a human approves or rejects.
 
 ## Stack limits (no new dependencies without asking)
 Python 3.11; langchain-groq (Groq); Pydantic; Pandas; NumPy; Streamlit; Plotly; pytest;
-python-dotenv; requests. LangGraph only for the workflow and only if it works within ~10 minutes,
-otherwise a plain Python state machine (describe it accurately). Open-Meteo rainfall tool with a
+python-dotenv; requests. LangGraph only for the workflow and only if the state-machine tests pass
+within a hard ~10-minute wall-clock budget (one quick retry allowed before fallback), otherwise a
+plain Python state machine (describe it accurately in the README). Open-Meteo rainfall tool with a
 local cache and a simulated fallback; record which was used. Do not name any package "trace"
 (standard-library clash); the project name is "trace-agent".
 
 ## Secrets and env
-- GROQ_API_KEY and GROQ_MODEL live in .env (git-ignored). Never print, log, or commit secrets.
-- Validate env only when an online call is made. `--offline` mode must work with no key
-  (cached weather, template hypotheses, deterministic Challenger rules).
+- GROQ_API_KEY and GROQ_MODEL live in .env (git-ignored; .env.example holds placeholders).
+  Never print, log, or commit secrets.
+- Validate env only when an online call is made; a missing GROQ_MODEL **hard-fails** that call
+  with a clear "set GROQ_MODEL" message — no guessed default. `--offline` mode must work with no
+  key (cached weather, template hypotheses, deterministic Challenger rules).
+- Baseline B1 (single-pass LLM) is online-only: with no key report "skipped (no key)" — never
+  fabricate a number — and record the model id whenever it runs.
 
 ## Build-day rules (details: docs/steps.md)
 - Step sequence S1..S11 with target times; no new architecture after 16:15.

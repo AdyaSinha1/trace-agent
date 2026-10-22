@@ -52,11 +52,20 @@ expert judgement before the build and are **not tuned on the scenarios**.
 - `config/tests.json` lists candidates (sample storm drain; sample just upstream of outlet; check
   discharge meter log; conductivity; ammonia; recheck turbidity/DO), each with:
   an **assumed outcome likelihood per hypothesis** (with a written rationale) and a **cost**.
-- For each test: **expected information gain** computed over the possible outcomes, using the
-  current **normalised scores as heuristic weights** over hypotheses (the outcome model is the
-  config likelihoods); then **gain per cost**.
+- **Primary ranking metric: expected entropy reduction.** Treat the current normalised scores as a
+  (heuristic, uncalibrated) distribution over the three hypotheses. For each test, each possible
+  outcome occurs with the config likelihoods per hypothesis; compute the entropy of the
+  score-renormalised posterior for each outcome, weight by the outcome's expected likelihood, and
+  take the reduction from the current entropy. Rank tests by **gain per cost** on this metric.
+- **Secondary column: expected change in the top-two margin** — shown as an extra column in the
+  table because it is easier to explain to judges. It is displayed and reported, but the ranking
+  metric is the entropy reduction.
+- Both metrics are **heuristic**: the scores are not calibrated probabilities.
 - Output: the best test **and the full table**, plus what each possible result would imply — all
   derived from config, nothing hard-coded.
+- **Scenario check:** in the rainfall-reversal scenario the recommendation must be the storm-drain
+  sample or the upstream sample — this is enforced by the config likelihoods; if it fails, fix
+  `config/tests.json`, never the code or hard-coding.
 - The LLM may only **rephrase** the explanation of the recommendation.
 - Stated plainly in UI and report: this is a **heuristic ranking, not exact optimisation**.
 

@@ -21,9 +21,11 @@ Work one step at a time, commit after each, STOP and wait for "go step N".
   top-two margin, and the separable/not-separable label at a configurable cut-off; tests green.
 
 - **S3 · 12:25 — Next-test table.**
-  Done when: `config/tests.json` drives expected information gain + gain-per-cost for every
-  candidate; best test AND full table AND implication-per-outcome all derived from config;
-  "heuristic, not exact optimisation" label present; tests green.
+  Done when: `config/tests.json` drives expected **entropy reduction** (primary metric) plus an
+  expected **top-two-margin change** column, ranked by gain-per-cost, for every candidate; best
+  test AND full table AND implication-per-outcome all derived from config; the rainfall-reversal
+  scenario recommends the storm-drain or upstream sample; "heuristic, not exact optimisation"
+  label present; tests green.
 
 - **S4 — Minimal dashboard.**
   Done when: Streamlit shows scenario selector, ranked scores (labelled "evidence scores, not
@@ -42,9 +44,10 @@ Work one step at a time, commit after each, STOP and wait for "go step N".
   Challenger never outputs conclusions or scores; tests green.
 
 - **S7 · 15:40 — Workflow and state machine, injection.**
-  Done when: all transitions from `docs/state.md` implemented (LangGraph only if it worked within
-  ~10 min, else plain Python, described accurately), round cap enforced, injection appends +
-  re-runs + updates the snapshot diff, all invariants tested.
+  Done when: all transitions from `docs/state.md` implemented (LangGraph with a hard 10-min
+  wall-clock budget and one quick retry before falling back to plain Python; README states which
+  was used), round cap enforced, injection appends + re-runs + updates the snapshot diff, all
+  invariants tested.
 
 - **CUT LINE 16:15** — if the Challenger is not reliable: demo Judge re-ranking on injected
   evidence and say so plainly in the README/demo.
@@ -56,9 +59,10 @@ Work one step at a time, commit after each, STOP and wait for "go step N".
 
 - **S9 — Evaluation and baselines.**
   Done when: Trace vs B2 (Investigator-only) vs B3 (simple rule) vs B1 (single-pass LLM, online
-  only) on the same 6 scenarios; metrics as counts with misses (e.g. 5/6) — attribution, revision
-  direction, next-test separation, next-test effectiveness vs random/cheapest, leader stability,
-  100 % citation validity; nothing invented.
+  only) on the same 6 scenarios; B1 with no key is reported as **"skipped (no key)"** in the table
+  and README — never fabricated — and the model id is recorded whenever B1 runs; metrics as counts
+  with misses (e.g. 5/6) — attribution, revision direction, next-test separation, next-test
+  effectiveness vs random/cheapest, leader stability, 100 % citation validity; nothing invented.
 
 - **S10 — Audit.**
   Done when: honesty statements present in README and UI; citation validity verified 100 %;
