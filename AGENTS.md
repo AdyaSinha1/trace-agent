@@ -10,6 +10,9 @@ challenges its own leading explanation using raw evidence, re-ranks when new evi
 explains why, and recommends the next measurement that best separates the remaining explanations.
 Track: Agents for Sustainable Development (SDG 6). Selection condition from the evaluator:
 scientifically defensible attribution + measurable improvement over baselines. Build for that.
+Business framing: Energy and Utilities — a municipal water utility's operations team handling a
+water-quality incident (fallback framing: Manufacturing effluent compliance). Process framing:
+data ingestion -> intelligent decision-making -> action execution -> outcome reporting.
 
 ## Architecture (fixed; ask the human before any change)
 - Three agents sharing one append-only evidence ledger. There is NO fourth agent.
@@ -24,7 +27,7 @@ scientifically defensible attribution + measurable improvement over baselines. B
 
 ## Evidence ledger
 - Append-only. Fields: id, source, source_group, timestamp, location, observation,
-  kind (observation | tool_output | agent_claim | injected),
+  kind (observation | tool_output | agent_claim | injected | action),
   reliability (verified = 1.0 | unverified = 0.5).
 - Every claim by any agent must cite existing ledger IDs; reject output citing unknown IDs.
 - Data stores RAW observations only. Supports/contradicts relations come from rules in
@@ -54,10 +57,26 @@ An unverified source is never shown as confirmed. INSUFFICIENT_EVIDENCE is reach
 Alert drafts are template-generated from Judge output (no LLM), state that scores are evidence
 scores not probabilities, that data is simulated, that no source is confirmed, and cite ledger
 IDs. Drafts are NEVER sent; a human approves or rejects.
+Approval flow: DONE -> AWAITING_APPROVAL -> ACTION_EXECUTED -> REPORTED (rejected -> REPORTED
+with no actions). Invariant, tested: no action executes unless approval == approved.
+
+## Action execution (deterministic tool, NOT a fourth agent)
+After human approval: creates a SIMULATED field work order in outbox/work_orders/ (JSON: id, test,
+location, parameter, rationale, cited ledger IDs, approver, timestamp, status "simulated") and a
+stakeholder notification DRAFT in outbox/notifications/ (marked "DRAFT, NOT SENT"; nothing is ever
+sent). Each action is appended to the ledger (kind = action). A work-order result may be injected
+back to re-run the Judge (round cap still applies).
+
+## Outcome report
+Markdown per incident, plus a UI download button: ranking history, contradictions with citations,
+uncertainty and separability, next test, approvals, actions, limitations.
 
 ## Honesty rules
 - Data is simulated; weights are expert priors, not fitted; scores are not probabilities;
   evaluation is on simulated scenarios and gives no real-world validation. Say so in README and UI.
+- Business-value metrics are measured only in simulation (measurements needed to reach a
+  "separable" ranking: Trace's recommended tests vs random vs cheapest-first) — never claim real
+  savings.
 - Never invent results. Report counts including misses (e.g. 5/6). Report test failures accurately.
 - Ask the human before changing architecture.
 
@@ -79,7 +98,15 @@ local cache and a simulated fallback; record which was used. Do not name any pac
   fabricate a number — and record the model id whenever it runs.
 
 ## Build-day rules (details: docs/steps.md)
+- Event: prebuilding allowed. Build window to 18:00 IST; team reviews/demos start from 15:00
+  (time unknown) so a presentable build must exist by 15:00. Submission by 18:00: GitHub repo
+  link, final commit SHA, final PPT, demo video. No commits or pushes after 18:00.
 - Step sequence S1..S11 with target times; no new architecture after 16:15.
 - Cut order when behind: semi-real data, custom-evidence form, extra charts, LangGraph,
   noisy variants, baseline B1.
 - NEVER cut: source groups, sensitivity, next-test table, state-machine tests, limitations statement.
+
+## README and submission
+- README: setup steps, honesty/limitations statement, and an OFFLINE demo that works with no API key.
+- Submission (by 18:00, nothing pushed after): GitHub repo link, final commit SHA, final PPT,
+  demo video.

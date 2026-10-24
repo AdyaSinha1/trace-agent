@@ -11,7 +11,7 @@ one was used.
 |---|---|---|
 | `scenario_id` | `str` | which `scenarios/*.json` is loaded |
 | `round` | `int` (0–2) | increments only on evidence injection; hard cap 2 |
-| `ledger` | `EvidenceLedger` | append-only evidence store |
+| `ledger` | `EvidenceLedger` | append-only; kinds: observation \| tool_output \| agent_claim \| injected \| action |
 | `hypotheses` | `list[Hypothesis]` | the 3 fixed hypotheses, each with cited evidence IDs |
 | `leader` | `str \| None` | set ONLY by the Judge |
 | `challenger_findings` | `list[Finding]` | contradictions + missing evidence from the Challenger |
@@ -21,9 +21,12 @@ one was used.
 | `status` | `Status` enum | current workflow status |
 | `alert_draft` | `AlertDraft \| None` | drafts only; NEVER sent |
 | `approval` | `none \| pending \| approved \| rejected` | human decision on the draft alert |
+| `actions` | `list[ActionRecord]` | executed action-tool outputs (work order + notification draft) |
+| `outcome_report` | `str \| None` | path/Markdown of the per-incident outcome report |
 
 ## Statuses
-`INIT`, `INVESTIGATING`, `CHALLENGING`, `JUDGING`, `INSUFFICIENT_EVIDENCE`, `DONE`, `AWAITING_EVIDENCE`
+`INIT`, `INVESTIGATING`, `CHALLENGING`, `JUDGING`, `INSUFFICIENT_EVIDENCE`, `DONE`,
+`AWAITING_EVIDENCE`, `AWAITING_APPROVAL`, `ACTION_EXECUTED`, `REPORTED`
 
 ## Transitions
 
@@ -39,11 +42,27 @@ one was used.
 - `JUDGING -> AWAITING_EVIDENCE`: otherwise; the next-test table is shown.
 - `AWAITING_EVIDENCE -> INVESTIGATING`: new evidence injected via the UI button → ledger append
   (kind = `injected`), round + 1, full re-run.
-- `DONE -> approval = pending`: when an alert draft is requested. The draft is **template-generated
-  from the Judge output — no LLM involved**. The template must state: these are evidence scores and
-  not probabilities; the data is simulated; no source is confirmed. It cites the ledger IDs that
-  support it. Alerts are drafts only and are **NEVER sent**; a human approves or rejects.
-  Terminal states do not loop.
+- `DONE -> AWAITING_APPROVAL`: an alert draft / action is requested (approval = pending). The draft
+  is **template-generated from the Judge output — no LLM involved**. The template must state: these
+  are evidence scores and not probabilities; the data is simulated; no source is confirmed. It
+  cites the ledger IDs that support it. Alerts are drafts only and are **NEVER sent**.
+- `AWAITING_APPROVAL -> ACTION_EXECUTED`: **only when approval == approved**; the deterministic
+  action-execution tool runs (see "Action execution" below).
+- `AWAITING_APPROVAL -> REPORTED`: approval == rejected → REPORTED with no actions.
+- `ACTION_EXECUTED -> REPORTED`: the outcome report is generated (Markdown per incident).
+- `ACTION_EXECUTED -> INVESTIGATING` (optional): a work-order result may be injected back to
+  re-run the Judge — ledger append, round + 1, subject to the max-2-rounds cap (if the cap is
+  reached, the result is appended and recorded but the workflow stays terminal).
+- `REPORTED` is terminal; terminal states do not loop.
+
+## Action execution (deterministic tool, NOT a fourth agent)
+Runs only after human approval. It:
+- creates a **simulated field work order** in `outbox/work_orders/` — JSON with: id, test,
+  location, parameter, rationale, cited ledger IDs, approver, timestamp, status `"simulated"`;
+- creates a stakeholder **notification draft** in `outbox/notifications/`, marked
+  **"DRAFT, NOT SENT"** — nothing is ever sent;
+- appends each action to the ledger (kind = `action`);
+- a work-order **result** may be injected back to re-run the Judge (see transitions above).
 
 ## Ranking snapshots
 Every Judge run appends a `RankingSnapshot`: per-hypothesis evidence scores, leader, the evidence
@@ -66,6 +85,9 @@ verbatim from the snapshots — nothing hand-written.
 7. **LLM never scores.** The LLM never sets or edits a score; unknown evidence types get weight 0
    and a flag.
 8. **Append-only ledger.** Once appended, a record can never be mutated or deleted.
+9. **Approval gate.** No action ever executes unless `approval == approved`; rejected or pending
+   flows produce no work order and no notification. Nothing is ever sent — notifications stay
+   drafts, work orders stay `"simulated"`. (Tested.)
 
 ## Termination and loop safety
 - Round cap 2 + status enum means the machine has a bounded state space on the happy path.

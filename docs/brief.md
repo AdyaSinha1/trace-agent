@@ -149,3 +149,31 @@ test results accurately, including failures. Ask me before changing architecture
    "Limitations" section.
 5. docs/steps.md: the step sequence with a "done when" line for each step.
 Then print a summary of at most 15 lines, list any ambiguities as questions, and STOP.
+
+---
+
+# BRIEF UPDATE — Step 0c (24 Oct 2026)
+
+1. Event rules: prebuilding is allowed. Build window runs to 18:00 IST; team reviews and demos
+   happen from 15:00 (time unknown), so a presentable build must exist by 15:00. Submission by
+   18:00: GitHub repo link, final commit SHA, final PPT, demo video. No commits or pushes after 18:00.
+2. Business framing: Energy and Utilities, a municipal water utility's operations team handling a
+   water-quality incident (Manufacturing effluent compliance is the fallback framing). Process:
+   data ingestion -> intelligent decision-making -> action execution -> outcome reporting.
+3. Add an ACTION EXECUTION tool (deterministic, NOT a fourth agent). After human approval it
+   creates a SIMULATED field work order in outbox/work_orders/ (JSON: id, test, location,
+   parameter, rationale, cited ledger IDs, approver, timestamp, status "simulated") and a
+   stakeholder notification DRAFT in outbox/notifications/ (marked "DRAFT, NOT SENT"; nothing is
+   ever sent). Each action is appended to the ledger (kind = action). A work-order result may be
+   injected back to re-run the Judge.
+4. Add an OUTCOME REPORT (Markdown per incident, plus a download button): ranking history,
+   contradictions with citations, uncertainty and separability, next test, approvals, actions,
+   limitations.
+5. State model additions: DONE -> AWAITING_APPROVAL -> ACTION_EXECUTED -> REPORTED (rejected ->
+   REPORTED with no actions). New invariant, with a test: no action executes unless approval ==
+   approved.
+6. Business-value metric, measured only in simulation: measurements needed to reach a "separable"
+   ranking, for Trace's recommended tests vs random and cheapest-first. Never claim real savings.
+7. README must include setup steps and an OFFLINE demo that works with no API key.
+
+Do not change the three-agent architecture or the scoring rules.
