@@ -53,6 +53,8 @@ class RankingSnapshot(BaseModel):
     leader: Optional[str] = None
     evidence_ids: List[str] = Field(default_factory=list)
     status: str
+    explanation: List[str] = Field(default_factory=list)
+    groups: Dict[str, Dict[str, float]] = Field(default_factory=dict)  # hyp -> group -> strongest signed weight
 
 
 class SensitivityResult(BaseModel):
