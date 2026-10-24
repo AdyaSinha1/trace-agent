@@ -34,6 +34,7 @@ class HypothesisRef(BaseModel):
     id: str
     label: str
     cited_ids: List[str] = Field(default_factory=list)
+    description: str = ""
 
 
 class Finding(BaseModel):
