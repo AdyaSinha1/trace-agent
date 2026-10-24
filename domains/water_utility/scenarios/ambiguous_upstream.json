@@ -12,7 +12,7 @@
       {"station": "downstream", "parameter": "do", "timestamp": "2026-06-13T13:00:00", "value": 7.9},
       {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-13T13:00:00", "value": 12.0},
       {"station": "upstream", "parameter": "ph", "timestamp": "2026-06-13T15:00:00", "value": 6.55},
-      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-13T15:00:00", "value": 3.8},
+      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-13T15:00:00", "value": 4.1},
       {"station": "upstream", "parameter": "turbidity", "timestamp": "2026-06-13T15:00:00", "value": 55.0},
       {"station": "downstream", "parameter": "ph", "timestamp": "2026-06-13T15:00:00", "value": 6.45},
       {"station": "downstream", "parameter": "do", "timestamp": "2026-06-13T15:00:00", "value": 4.1},
