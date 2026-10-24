@@ -84,13 +84,13 @@ class Investigator:
             )
             if llm_interpretation:
                 description += f" Interpretation: {llm_interpretation}"
-            claim_id = f"{state.scenario_id}:inv:hyp:{hyp.id}"
+            claim_id = f"{state.scenario_id}:inv:r{state.round}:hyp:{hyp.id}"
             self._append_claim(state, claim_id, description, ids, self.llm.model_id)
             claim_ids.append(claim_id)
             hypotheses.append(HypothesisRef(id=hyp.id, label=hyp.label, cited_ids=ids, description=description))
 
         if anomaly_ids:
-            claim_id = f"{state.scenario_id}:inv:anomalies"
+            claim_id = f"{state.scenario_id}:inv:r{state.round}:anomalies"
             self._append_claim(
                 state,
                 claim_id,
@@ -104,7 +104,7 @@ class Investigator:
         if fallback_used:
             self._append_claim(
                 state,
-                f"{state.scenario_id}:inv:fallback",
+                f"{state.scenario_id}:inv:r{state.round}:fallback",
                 "LLM call failed; template hypotheses and deterministic anomaly detection used instead.",
                 claim_ids,
                 "offline-templates",

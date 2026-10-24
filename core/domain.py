@@ -53,6 +53,8 @@ class TestDef(BaseModel):
     cost: float
     outcome_likelihoods: Dict[str, Dict[str, float]]  # hypothesis_id -> outcome_id -> P(outcome|hypothesis)
     rationale: str = ""
+    evidence_type: str = ""  # optional: evidence type a simulated outcome maps to
+    outcome_values: Dict[str, Any] = {}  # optional: outcome_id -> value payload for that evidence type
 
 
 class ActionTemplates(BaseModel):
