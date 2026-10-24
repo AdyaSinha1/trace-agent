@@ -1,0 +1,17 @@
+{
+  "scenario_id": "missing_data",
+  "simulated": true,
+  "pack": "water_utility",
+  "incident_time": "2026-06-15T14:00:00",
+  "raw": {
+    "sensor_readings": [
+      {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-15T15:00:00", "value": 30.0}
+    ],
+    "discharge_log": [],
+    "rainfall": []
+  },
+  "initial_evidence": [
+    {"id": "md-rep1", "source": "utility_incident_log", "source_group": "utility_log", "timestamp": "2026-06-15T15:30:00", "location": "river", "observation": "murky water complaint (sensors offline, log unavailable)", "kind": "observation", "reliability": 0.5, "evidence_type": "incident_report", "values": {"value": "murky_water"}}
+  ],
+  "injected_evidence": []
+}

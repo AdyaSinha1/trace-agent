@@ -1,0 +1,28 @@
+{
+  "scenario_id": "ambiguous_mixed",
+  "simulated": true,
+  "pack": "water_utility",
+  "incident_time": "2026-06-12T14:00:00",
+  "raw": {
+    "sensor_readings": [
+      {"station": "upstream", "parameter": "ph", "timestamp": "2026-06-12T13:00:00", "value": 7.0},
+      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-12T13:00:00", "value": 7.9},
+      {"station": "upstream", "parameter": "turbidity", "timestamp": "2026-06-12T13:00:00", "value": 10.0},
+      {"station": "downstream", "parameter": "ph", "timestamp": "2026-06-12T13:00:00", "value": 7.1},
+      {"station": "downstream", "parameter": "do", "timestamp": "2026-06-12T13:00:00", "value": 8.0},
+      {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-12T13:00:00", "value": 11.0},
+      {"station": "upstream", "parameter": "ph", "timestamp": "2026-06-12T15:00:00", "value": 6.9},
+      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-12T15:00:00", "value": 7.6},
+      {"station": "upstream", "parameter": "turbidity", "timestamp": "2026-06-12T15:00:00", "value": 9.0},
+      {"station": "downstream", "parameter": "ph", "timestamp": "2026-06-12T15:00:00", "value": 6.3},
+      {"station": "downstream", "parameter": "do", "timestamp": "2026-06-12T15:00:00", "value": 3.8},
+      {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-12T15:00:00", "value": 52.0}
+    ],
+    "discharge_log": [{"timestamp": "2026-06-12T13:55:00", "released": false}],
+    "rainfall": [{"timestamp": "2026-06-12T13:00:00", "mm": 8.0}]
+  },
+  "initial_evidence": [
+    {"id": "am-rep1", "source": "utility_incident_log", "source_group": "utility_log", "timestamp": "2026-06-12T15:30:00", "location": "downstream", "observation": "fish kill reported downstream", "kind": "observation", "reliability": 0.5, "evidence_type": "incident_report", "values": {"value": "fish_kill"}}
+  ],
+  "injected_evidence": []
+}

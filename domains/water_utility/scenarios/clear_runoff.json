@@ -1,0 +1,31 @@
+{
+  "scenario_id": "clear_runoff",
+  "simulated": true,
+  "pack": "water_utility",
+  "incident_time": "2026-06-11T14:00:00",
+  "raw": {
+    "sensor_readings": [
+      {"station": "upstream", "parameter": "ph", "timestamp": "2026-06-11T13:00:00", "value": 7.0},
+      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-11T13:00:00", "value": 7.8},
+      {"station": "upstream", "parameter": "turbidity", "timestamp": "2026-06-11T13:00:00", "value": 12.0},
+      {"station": "downstream", "parameter": "ph", "timestamp": "2026-06-11T13:00:00", "value": 7.1},
+      {"station": "downstream", "parameter": "do", "timestamp": "2026-06-11T13:00:00", "value": 7.9},
+      {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-11T13:00:00", "value": 14.0},
+      {"station": "upstream", "parameter": "ph", "timestamp": "2026-06-11T15:00:00", "value": 6.6},
+      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-11T15:00:00", "value": 5.0},
+      {"station": "upstream", "parameter": "turbidity", "timestamp": "2026-06-11T15:00:00", "value": 60.0},
+      {"station": "downstream", "parameter": "ph", "timestamp": "2026-06-11T15:00:00", "value": 6.4},
+      {"station": "downstream", "parameter": "do", "timestamp": "2026-06-11T15:00:00", "value": 4.8},
+      {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-11T15:00:00", "value": 75.0}
+    ],
+    "discharge_log": [{"timestamp": "2026-06-11T13:00:00", "released": false}],
+    "rainfall": [
+      {"timestamp": "2026-06-11T13:00:00", "mm": 18.0},
+      {"timestamp": "2026-06-11T13:30:00", "mm": 14.0}
+    ]
+  },
+  "initial_evidence": [
+    {"id": "cr-rep1", "source": "utility_incident_log", "source_group": "utility_log", "timestamp": "2026-06-11T15:30:00", "location": "river", "observation": "murky water complaints from riverside residents", "kind": "observation", "reliability": 0.5, "evidence_type": "incident_report", "values": {"value": "murky_water"}}
+  ],
+  "injected_evidence": []
+}

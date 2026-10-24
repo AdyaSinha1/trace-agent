@@ -62,7 +62,7 @@ def test_load_water_pack() -> None:
     assert weights["sensor_ph"] == ("B", 2.0)
     assert weights["rainfall_inference"] == ("C", 1.0)
     assert pack.relation_rules and pack.tests and pack.action_templates.work_order
-    assert loaded.extractors == {}
+    assert len(loaded.extractors) >= 5  # water pack registers pure-Python feature extractors
 
 
 def test_ledger_append_only_and_citations() -> None:

@@ -1,0 +1,8 @@
+{
+  "clear_factory": "factory_discharge",
+  "clear_runoff": "storm_runoff",
+  "ambiguous_mixed": "storm_runoff",
+  "ambiguous_upstream": "upstream_source",
+  "rainfall_reversal": "storm_runoff",
+  "missing_data": null
+}

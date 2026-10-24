@@ -10,18 +10,40 @@
   "evidence_types": [
     {"id": "discharge_log", "tier": "A", "weight": 3.0, "rationale": "verified direct record of the causal act"},
     {"id": "lab_sample", "tier": "A", "weight": 3.0, "rationale": "verified direct laboratory measurement"},
+    {"id": "lab_ammonia", "tier": "A", "weight": 3.0, "rationale": "verified direct laboratory measurement"},
+    {"id": "lab_conductivity", "tier": "A", "weight": 3.0, "rationale": "verified direct laboratory measurement"},
+    {"id": "rainfall_gauge", "tier": "B", "weight": 2.0, "rationale": "in-situ gauge record of rainfall, not a model"},
     {"id": "sensor_ph", "tier": "B", "weight": 2.0, "rationale": "in-situ physical reading; noisy and spatially local"},
     {"id": "sensor_do", "tier": "B", "weight": 2.0, "rationale": "in-situ physical reading; noisy and spatially local"},
     {"id": "sensor_turbidity", "tier": "B", "weight": 2.0, "rationale": "in-situ physical reading; noisy and spatially local"},
+    {"id": "delta_ph", "tier": "B", "weight": 2.0, "rationale": "derived from two in-situ readings; shares the downstream source_group so it cannot double-count"},
+    {"id": "delta_do", "tier": "B", "weight": 2.0, "rationale": "derived from two in-situ readings; shares the downstream source_group so it cannot double-count"},
+    {"id": "delta_turbidity", "tier": "B", "weight": 2.0, "rationale": "derived from two in-situ readings; shares the downstream source_group so it cannot double-count"},
     {"id": "rainfall_inference", "tier": "C", "weight": 1.0, "rationale": "modelled inference from correlated context"},
-    {"id": "upstream_inference", "tier": "C", "weight": 1.0, "rationale": "modelled inference along the upstream chain"}
+    {"id": "upstream_inference", "tier": "C", "weight": 1.0, "rationale": "modelled inference along the upstream chain"},
+    {"id": "spike_timing", "tier": "C", "weight": 1.0, "rationale": "derived temporal reasoning over timestamps, indirect"},
+    {"id": "incident_report", "tier": "C", "weight": 1.0, "rationale": "self-reported utility incident entry; indirect"}
   ],
   "relation_rules": [
     {"evidence_type": "sensor_ph", "when": {"op": "lt", "value": 6.5}, "effects": {"factory_discharge": "supports"}},
     {"evidence_type": "sensor_do", "when": {"op": "lt", "value": 4.0}, "effects": {"factory_discharge": "supports", "storm_runoff": "supports"}},
     {"evidence_type": "sensor_turbidity", "when": {"op": "gt", "value": 50.0}, "effects": {"storm_runoff": "supports"}},
+    {"evidence_type": "delta_ph", "when": {"op": "lt", "value": -0.8}, "effects": {"factory_discharge": "supports"}},
+    {"evidence_type": "delta_do", "when": {"op": "lt", "value": -1.5}, "effects": {"factory_discharge": "supports"}},
+    {"evidence_type": "delta_turbidity", "when": {"op": "gt", "value": 20.0}, "effects": {"storm_runoff": "supports"}},
     {"evidence_type": "rainfall_inference", "when": {"op": "gt", "value": 10.0}, "effects": {"storm_runoff": "supports", "factory_discharge": "contradicts"}},
-    {"evidence_type": "discharge_log", "when": {"op": "eq", "value": true}, "effects": {"factory_discharge": "supports"}}
+    {"evidence_type": "rainfall_gauge", "when": {"op": "gt", "value": 10.0}, "effects": {"storm_runoff": "supports", "factory_discharge": "contradicts"}},
+    {"evidence_type": "discharge_log", "when": {"op": "eq", "value": true}, "effects": {"factory_discharge": "supports"}},
+    {"evidence_type": "spike_timing", "when": {"op": "eq", "value": "spike_precedes_release"}, "effects": {"upstream_source": "supports", "storm_runoff": "supports", "factory_discharge": "contradicts"}},
+    {"evidence_type": "spike_timing", "when": {"op": "eq", "value": "release_precedes_spike"}, "effects": {"factory_discharge": "supports"}},
+    {"evidence_type": "upstream_inference", "when": {"op": "eq", "value": "upstream_spike_before_release"}, "effects": {"upstream_source": "supports", "factory_discharge": "contradicts"}},
+    {"evidence_type": "lab_sample", "when": {"op": "eq", "value": "industrial_signature"}, "effects": {"factory_discharge": "supports"}},
+    {"evidence_type": "lab_sample", "when": {"op": "eq", "value": "no_industrial_signature"}, "effects": {"factory_discharge": "contradicts", "upstream_source": "supports"}},
+    {"evidence_type": "lab_ammonia", "when": {"op": "eq", "value": "industrial_ratio"}, "effects": {"factory_discharge": "supports"}},
+    {"evidence_type": "lab_ammonia", "when": {"op": "eq", "value": "background_ratio"}, "effects": {"factory_discharge": "contradicts", "storm_runoff": "supports"}},
+    {"evidence_type": "lab_conductivity", "when": {"op": "eq", "value": "elevated_upstream"}, "effects": {"upstream_source": "supports", "factory_discharge": "contradicts"}},
+    {"evidence_type": "lab_conductivity", "when": {"op": "eq", "value": "normal_upstream"}, "effects": {"upstream_source": "contradicts"}},
+    {"evidence_type": "incident_report", "when": {"op": "eq", "value": "fish_kill"}, "effects": {"factory_discharge": "supports", "storm_runoff": "supports"}}
   ],
   "tests": [
     {
@@ -29,8 +51,8 @@
       "label": "Sample the storm drain",
       "cost": 2.0,
       "outcome_likelihoods": {
-        "factory_discharge": {"industrial_signature": 0.8, "no_industrial_signature": 0.2},
-        "storm_runoff": {"industrial_signature": 0.3, "no_industrial_signature": 0.7},
+        "factory_discharge": {"industrial_signature": 0.9, "no_industrial_signature": 0.1},
+        "storm_runoff": {"industrial_signature": 0.15, "no_industrial_signature": 0.85},
         "upstream_source": {"industrial_signature": 0.2, "no_industrial_signature": 0.8}
       },
       "rationale": "an industrial signature at the drain points to the factory, not runoff"
@@ -40,16 +62,68 @@
       "label": "Sample just upstream of the outlet",
       "cost": 3.0,
       "outcome_likelihoods": {
-        "factory_discharge": {"polluted_upstream": 0.2, "clean_upstream": 0.8},
+        "factory_discharge": {"polluted_upstream": 0.1, "clean_upstream": 0.9},
         "storm_runoff": {"polluted_upstream": 0.5, "clean_upstream": 0.5},
         "upstream_source": {"polluted_upstream": 0.9, "clean_upstream": 0.1}
       },
       "rationale": "pollution upstream of the outlet isolates an upstream source"
+    },
+    {
+      "id": "check_discharge_meter_log",
+      "label": "Check the discharge meter log",
+      "cost": 1.0,
+      "outcome_likelihoods": {
+        "factory_discharge": {"discharge_anomaly": 0.8, "log_consistent": 0.3},
+        "storm_runoff": {"discharge_anomaly": 0.3, "log_consistent": 0.7},
+        "upstream_source": {"discharge_anomaly": 0.2, "log_consistent": 0.8}
+      },
+      "rationale": "a meter anomaly at the incident time is direct evidence of a release; desk check"
+    },
+    {
+      "id": "conductivity_upstream_station",
+      "label": "Conductivity at the upstream station",
+      "cost": 2.0,
+      "outcome_likelihoods": {
+        "factory_discharge": {"elevated_upstream": 0.25, "normal_upstream": 0.75},
+        "storm_runoff": {"elevated_upstream": 0.4, "normal_upstream": 0.6},
+        "upstream_source": {"elevated_upstream": 0.6, "normal_upstream": 0.4}
+      },
+      "rationale": "upstream conductivity elevation moderately indicates an upstream source; assumed weak discrimination"
+    },
+    {
+      "id": "ammonia_test",
+      "label": "Ammonia test on the sample",
+      "cost": 4.0,
+      "outcome_likelihoods": {
+        "factory_discharge": {"industrial_ratio": 0.85, "background_ratio": 0.15},
+        "storm_runoff": {"industrial_ratio": 0.25, "background_ratio": 0.75},
+        "upstream_source": {"industrial_ratio": 0.3, "background_ratio": 0.7}
+      },
+      "rationale": "an ammonia ratio typical of industrial effluent points to the factory"
+    },
+    {
+      "id": "recheck_turbidity_do",
+      "label": "Recheck turbidity and DO",
+      "cost": 1.0,
+      "outcome_likelihoods": {
+        "factory_discharge": {"spike_confirmed": 0.5, "reading_stable": 0.5},
+        "storm_runoff": {"spike_confirmed": 0.85, "reading_stable": 0.15},
+        "upstream_source": {"spike_confirmed": 0.7, "reading_stable": 0.3}
+      },
+      "rationale": "a stable recheck suggests sensor noise, weakening whichever hypothesis the spike supported"
     }
   ],
   "action_templates": {
     "work_order": "Simulated field work order {id}: {test} at {location} (parameter: {parameter}). Rationale: {rationale}. Evidence: {cited_ids}. Approver: {approver}. Status: simulated - nothing is sent.",
     "notification": "DRAFT, NOT SENT. Simulated incident update. Evidence scores, not probabilities. Data is simulated; no source is confirmed. Cited evidence: {cited_ids}."
   },
-  "thresholds": {"ph_anomaly_sigma": 2.0, "turbidity_anomaly_sigma": 2.0}
+  "thresholds": {
+    "ph_drop_threshold": 6.5,
+    "do_drop_threshold": 4.0,
+    "turbidity_spike_value": 50.0,
+    "rainfall_mm_threshold": 10.0,
+    "release_lag_minutes": 120.0,
+    "ph_anomaly_sigma": 2.0,
+    "turbidity_anomaly_sigma": 2.0
+  }
 }

@@ -1,0 +1,34 @@
+{
+  "scenario_id": "rainfall_reversal",
+  "simulated": true,
+  "pack": "water_utility",
+  "incident_time": "2026-06-14T14:00:00",
+  "raw": {
+    "sensor_readings": [
+      {"station": "upstream", "parameter": "ph", "timestamp": "2026-06-14T13:00:00", "value": 7.2},
+      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-14T13:00:00", "value": 8.0},
+      {"station": "upstream", "parameter": "turbidity", "timestamp": "2026-06-14T13:00:00", "value": 8.0},
+      {"station": "downstream", "parameter": "ph", "timestamp": "2026-06-14T13:00:00", "value": 7.1},
+      {"station": "downstream", "parameter": "do", "timestamp": "2026-06-14T13:00:00", "value": 7.9},
+      {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-14T13:00:00", "value": 9.0},
+      {"station": "upstream", "parameter": "ph", "timestamp": "2026-06-14T15:00:00", "value": 7.2},
+      {"station": "upstream", "parameter": "do", "timestamp": "2026-06-14T15:00:00", "value": 8.0},
+      {"station": "upstream", "parameter": "turbidity", "timestamp": "2026-06-14T15:00:00", "value": 8.0},
+      {"station": "downstream", "parameter": "ph", "timestamp": "2026-06-14T15:00:00", "value": 6.1},
+      {"station": "downstream", "parameter": "do", "timestamp": "2026-06-14T15:00:00", "value": 3.5},
+      {"station": "downstream", "parameter": "turbidity", "timestamp": "2026-06-14T15:00:00", "value": 30.0}
+    ],
+    "discharge_log": [{"timestamp": "2026-06-14T13:50:00", "released": true, "volume_m3": 400.0}],
+    "rainfall": [{"timestamp": "2026-06-14T12:00:00", "mm": 1.0}]
+  },
+  "initial_evidence": [
+    {"id": "rr-rep1", "source": "utility_incident_log", "source_group": "utility_log", "timestamp": "2026-06-14T15:30:00", "location": "downstream", "observation": "fish kill reported downstream", "kind": "observation", "reliability": 0.5, "evidence_type": "incident_report", "values": {"value": "fish_kill"}}
+  ],
+  "injected_evidence": [
+    {"id": "rr-inj1", "source": "utility_rain_gauge", "source_group": "rainfall_gauge", "timestamp": "2026-06-14T14:30:00", "location": "catchment", "observation": "gauge record: 28mm rain in the 90 minutes around the incident", "kind": "injected", "reliability": 1.0, "evidence_type": "rainfall_gauge", "values": {"value": 28.0}},
+    {"id": "rr-inj2", "source": "sensor:upstream", "source_group": "upstream:turbidity:pre_incident", "timestamp": "2026-06-14T13:30:00", "location": "upstream", "observation": "turbidity=62 at upstream station, before the logged release", "kind": "injected", "reliability": 0.5, "evidence_type": "sensor_turbidity", "values": {"value": 62.0}},
+    {"id": "rr-inj3", "source": "derived:timing", "source_group": "upstream_chain", "timestamp": "2026-06-14T13:30:00", "location": "upstream", "observation": "upstream turbidity spike at 13:30 before the logged release at 13:50", "kind": "injected", "reliability": 0.5, "evidence_type": "spike_timing", "values": {"value": "spike_precedes_release"}},
+    {"id": "rr-inj4", "source": "derived:upstream_chain", "source_group": "upstream_chain", "timestamp": "2026-06-14T13:30:00", "location": "upstream", "observation": "pollution signature present upstream before the logged release", "kind": "injected", "reliability": 0.5, "evidence_type": "upstream_inference", "values": {"value": "upstream_spike_before_release"}},
+    {"id": "rr-inj5", "source": "accredited_lab", "source_group": "lab_sample", "timestamp": "2026-06-14T13:45:00", "location": "upstream", "observation": "upstream grab sample: no industrial signature", "kind": "injected", "reliability": 1.0, "evidence_type": "lab_sample", "values": {"value": "no_industrial_signature"}}
+  ]
+}
