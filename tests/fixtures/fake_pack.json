@@ -1,0 +1,35 @@
+{
+  "id": "it_ops",
+  "name": "Fake Non-Water Pack (engine test only)",
+  "description": "Tiny domain-agnostic pack used by tests to prove nothing is hard-coded.",
+  "hypotheses": [
+    {"id": "alpha", "label": "Alpha cause"},
+    {"id": "beta", "label": "Beta cause"},
+    {"id": "gamma", "label": "Gamma cause"}
+  ],
+  "evidence_types": [
+    {"id": "direct_record", "tier": "A", "weight": 3.0, "rationale": "direct record"},
+    {"id": "reading", "tier": "B", "weight": 2.0, "rationale": "in-situ reading"},
+    {"id": "model", "tier": "C", "weight": 1.0, "rationale": "modelled inference"}
+  ],
+  "relation_rules": [
+    {"evidence_type": "direct_record", "when": {"op": "eq", "value": true}, "effects": {"alpha": "supports"}},
+    {"evidence_type": "reading", "when": {"op": "gt", "value": 10.0}, "effects": {"beta": "supports", "alpha": "contradicts"}},
+    {"evidence_type": "model", "when": {"op": "eq", "value": "yes"}, "effects": {"gamma": "supports"}}
+  ],
+  "tests": [
+    {
+      "id": "probe",
+      "label": "Probe the thing",
+      "cost": 1.0,
+      "outcome_likelihoods": {
+        "alpha": {"hi": 0.8, "lo": 0.2},
+        "beta": {"hi": 0.4, "lo": 0.6},
+        "gamma": {"hi": 0.3, "lo": 0.7}
+      },
+      "rationale": "fake test"
+    }
+  ],
+  "action_templates": {"work_order": "wo {id}", "notification": "nf {id}"},
+  "thresholds": {}
+}
