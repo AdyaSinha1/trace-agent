@@ -8,6 +8,10 @@ at the round cap (round >= max_rounds).
 
 from __future__ import annotations
 
+import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -192,3 +196,24 @@ def test_langgraph_driver_matches_plain_engine(tmp_path) -> None:
     assert {k: round(v, 6) for k, v in state.ranking_history[-1].scores.items()} == {
         k: round(v, 6) for k, v in expected.ranking_history[-1].scores.items()
     }
+
+
+def test_cli_full_offline_run_no_key(tmp_path, monkeypatch) -> None:
+    """A full offline run of the rainfall scenario with NO key succeeds end to end."""
+    import subprocess
+    import sys
+
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_MODEL", raising=False)
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "cli.py"), "--domain", "water_utility", "--scenario",
+         "rainfall_reversal", "--inject", "--approve", "--offline", "--json"],
+        cwd=ROOT, capture_output=True, text=True, timeout=120,
+        env={"SYSTEMROOT": __import__("os").environ.get("SYSTEMROOT", ""), "PATH": __import__("os").environ.get("PATH", ""), "PYTHONIOENCODING": "utf-8"},
+    )
+    assert result.returncode == 0, result.stderr
+    summary = json.loads(result.stdout[result.stdout.index("{"):])
+    assert summary["status"] == "REPORTED"
+    assert summary["leader"] == "storm_runoff"
+    assert len(summary["actions"]) == 2
+    assert summary["llm"] == "offline templates"

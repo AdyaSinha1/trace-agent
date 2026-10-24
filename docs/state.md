@@ -5,6 +5,13 @@ wall-clock budget** to make the state-machine tests pass; **one quick retry is a
 trivial typo doesn't force the fallback), then fall back to plain Python. The README states which
 one was used.
 
+**Decision (Step 3D, verified by `tests/test_workflow.py::test_langgraph_driver_matches_plain_engine`):**
+the transition logic lives in plain-Python phase methods on `WorkflowEngine`
+(`_phase_investigate`, `_phase_challenge`, `_phase_judge`). A LangGraph StateGraph driver
+(`core/langgraph_driver.py`) drives the SAME methods through graph nodes and passed on the first
+attempt, so **both are available; the plain-Python engine is the default path** (used by CLI/UI),
+with the LangGraph wrapper kept and tested.
+
 ## State (Pydantic)
 
 | Field | Type | Notes |

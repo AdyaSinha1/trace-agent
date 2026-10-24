@@ -120,7 +120,7 @@ def group_strongest(assessment: Assessment, pack: DomainPack) -> Tuple[Dict[str,
 
 def normalise(raw: Dict[str, float]) -> Dict[str, float]:
     total = sum(raw.values())
-    return {h: value / total * 100.0 for h, value in raw.items()}
+    return {h: round(value / total * 100.0, 4) for h, value in raw.items()}
 
 
 def _fmt_delta(before: float, after: float) -> str:

@@ -13,12 +13,12 @@ Updated after every part so work can resume after a context loss. Working dir:
 | S2D | Sensitivity (seeded MC) | done | 8 passed |
 | S2E | Next-test (entropy reduction + margin column) | done | 8 passed |
 | S2F | Step-2 test suite | done | 21 passed |
-| 3A | LLM layer + Open-Meteo rainfall tool | in progress | — |
-| 3B | Investigator | pending | — |
-| 3C | Challenger | pending | — |
-| 3D | Workflow / state machine (+ LangGraph attempt) | pending | — |
-| 3E | Actions + outcome report | pending | — |
-| 3F | CLI + workflow tests | pending | — |
+| 3A | LLM layer + Open-Meteo rainfall tool | done | 27 passed |
+| 3B | Investigator | done | 31 passed |
+| 3C | Challenger | done | 35 passed |
+| 3D | Workflow / state machine (LangGraph driver verified) | done | 46 passed |
+| 3E | Actions + outcome report | done | 46 passed |
+| 3F | CLI + workflow tests | in progress | — |
 | 4A | Evaluation + baselines (results.md/results.json) | pending | — |
 | 4B | docs/governance.md | pending | — |
 | 4C | core/roi.py | pending | — |
