@@ -4,6 +4,9 @@
 *.pem
 *.key
 
+# Runtime outputs (simulated work orders / notification drafts)
+outbox/
+
 # Python
 __pycache__/
 *.py[cod]

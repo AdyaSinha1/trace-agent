@@ -1,0 +1,55 @@
+{
+  "id": "water_utility",
+  "name": "Municipal Water Utility - Pollution Incident",
+  "description": "Simulated water-quality incident domain pack (SDG 6 demo). All data is simulated; weights are expert priors, not fitted.",
+  "hypotheses": [
+    {"id": "factory_discharge", "label": "Factory discharge at the outfall"},
+    {"id": "storm_runoff", "label": "Storm runoff entering the river"},
+    {"id": "upstream_source", "label": "Pollution arriving from upstream"}
+  ],
+  "evidence_types": [
+    {"id": "discharge_log", "tier": "A", "weight": 3.0, "rationale": "verified direct record of the causal act"},
+    {"id": "lab_sample", "tier": "A", "weight": 3.0, "rationale": "verified direct laboratory measurement"},
+    {"id": "sensor_ph", "tier": "B", "weight": 2.0, "rationale": "in-situ physical reading; noisy and spatially local"},
+    {"id": "sensor_do", "tier": "B", "weight": 2.0, "rationale": "in-situ physical reading; noisy and spatially local"},
+    {"id": "sensor_turbidity", "tier": "B", "weight": 2.0, "rationale": "in-situ physical reading; noisy and spatially local"},
+    {"id": "rainfall_inference", "tier": "C", "weight": 1.0, "rationale": "modelled inference from correlated context"},
+    {"id": "upstream_inference", "tier": "C", "weight": 1.0, "rationale": "modelled inference along the upstream chain"}
+  ],
+  "relation_rules": [
+    {"evidence_type": "sensor_ph", "when": {"op": "lt", "value": 6.5}, "effects": {"factory_discharge": "supports"}},
+    {"evidence_type": "sensor_do", "when": {"op": "lt", "value": 4.0}, "effects": {"factory_discharge": "supports", "storm_runoff": "supports"}},
+    {"evidence_type": "sensor_turbidity", "when": {"op": "gt", "value": 50.0}, "effects": {"storm_runoff": "supports"}},
+    {"evidence_type": "rainfall_inference", "when": {"op": "gt", "value": 10.0}, "effects": {"storm_runoff": "supports", "factory_discharge": "contradicts"}},
+    {"evidence_type": "discharge_log", "when": {"op": "eq", "value": true}, "effects": {"factory_discharge": "supports"}}
+  ],
+  "tests": [
+    {
+      "id": "sample_storm_drain",
+      "label": "Sample the storm drain",
+      "cost": 2.0,
+      "outcome_likelihoods": {
+        "factory_discharge": {"industrial_signature": 0.8, "no_industrial_signature": 0.2},
+        "storm_runoff": {"industrial_signature": 0.3, "no_industrial_signature": 0.7},
+        "upstream_source": {"industrial_signature": 0.2, "no_industrial_signature": 0.8}
+      },
+      "rationale": "an industrial signature at the drain points to the factory, not runoff"
+    },
+    {
+      "id": "sample_upstream_outlet",
+      "label": "Sample just upstream of the outlet",
+      "cost": 3.0,
+      "outcome_likelihoods": {
+        "factory_discharge": {"polluted_upstream": 0.2, "clean_upstream": 0.8},
+        "storm_runoff": {"polluted_upstream": 0.5, "clean_upstream": 0.5},
+        "upstream_source": {"polluted_upstream": 0.9, "clean_upstream": 0.1}
+      },
+      "rationale": "pollution upstream of the outlet isolates an upstream source"
+    }
+  ],
+  "action_templates": {
+    "work_order": "Simulated field work order {id}: {test} at {location} (parameter: {parameter}). Rationale: {rationale}. Evidence: {cited_ids}. Approver: {approver}. Status: simulated - nothing is sent.",
+    "notification": "DRAFT, NOT SENT. Simulated incident update. Evidence scores, not probabilities. Data is simulated; no source is confirmed. Cited evidence: {cited_ids}."
+  },
+  "thresholds": {"ph_anomaly_sigma": 2.0, "turbidity_anomaly_sigma": 2.0}
+}
