@@ -58,7 +58,7 @@ def test_investigator_offline_templates() -> None:
     leader_support = [h for h in state.hypotheses if h.id == "factory_discharge"]
     assert leader_support and leader_support[0].cited_ids  # supporting evidence cited
     claims = state.ledger.records()
-    assert any(r.id.endswith("inv:fallback") is False for r in claims)
+    assert any(r.id.endswith(":fallback") is False for r in claims)
     for hyp in state.hypotheses:
         assert not state.ledger.validate_citations(hyp.cited_ids)  # all citations resolve
 
@@ -70,7 +70,7 @@ def test_investigator_uses_mocked_llm_and_records_model() -> None:
     mock = MockLLM(structured={"interpretation": "Downstream collapse follows the logged release."})
     Investigator(loaded, mock).investigate(state)
     assert mock.calls == 1
-    claim = next(r for r in state.ledger.records() if r.id.endswith("inv:hyp:factory_discharge"))
+    claim = next(r for r in state.ledger.records() if r.id.endswith(":hyp:factory_discharge"))
     assert "Downstream collapse" in claim.observation
     assert claim.values["model_id"] == "mock-model"
 
@@ -80,7 +80,7 @@ def test_investigator_falls_back_and_records_on_llm_failure() -> None:
 
     state, loaded = make_state("clear_factory")
     Investigator(loaded, MockLLM(fail=True)).investigate(state)
-    fallback = next(r for r in state.ledger.records() if r.id.endswith("inv:fallback"))
+    fallback = next(r for r in state.ledger.records() if r.id.endswith(":fallback"))
     assert "template" in fallback.observation.lower()
     assert len(state.hypotheses) == 3  # template hypotheses still produced
 
