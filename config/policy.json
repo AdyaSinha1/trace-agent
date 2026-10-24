@@ -3,7 +3,7 @@
   "max_rounds": 2,
   "separability_cutoff": 0.7,
   "min_total_weight": 3.0,
-  "llm_enabled": true,
+  "llm_enabled": false,
   "allowed_actions": ["create_work_order", "draft_notification"],
   "external_notifications": false
 }

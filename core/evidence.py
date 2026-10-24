@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from enum import Enum
+from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 from pydantic import BaseModel, Field
@@ -64,7 +66,36 @@ class EvidenceLedger:
 
     def citations_valid(self, cited_ids: Iterable[str]) -> bool:
         """Every cited id must already exist in the ledger (invariant 3, docs/state.md)."""
-        return all(cid in self._ids for cid in cited_ids)
+        return not self.validate_citations(cited_ids)
+
+    def validate_citations(self, cited_ids: Iterable[str]) -> List[str]:
+        """Return the cited ids that do NOT exist in the ledger (empty list = valid)."""
+        return [cid for cid in cited_ids if cid not in self._ids]
+
+    # --- aliases / export -------------------------------------------------
+    def add(self, record: EvidenceRecord) -> EvidenceRecord:
+        """Alias for append()."""
+        return self.append(record)
+
+    def list_records(self, kinds: Optional[Iterable[EvidenceKind]] = None) -> List[EvidenceRecord]:
+        """List records in insertion order (optionally filtered by kind)."""
+        return list(self.records(kinds))
+
+    def to_dict(self) -> List[Dict[str, object]]:
+        return [r.model_dump(mode="json") for r in self._records]
+
+    def to_json(self, indent: int = 2) -> str:
+        return json.dumps(self.to_dict(), indent=indent)
+
+    def save_json(self, path: Path | str, indent: int = 2) -> None:
+        Path(path).write_text(self.to_json(indent), encoding="utf-8")
+
+    @classmethod
+    def from_records(cls, records: Iterable[Dict[str, object]]) -> "EvidenceLedger":
+        ledger = cls()
+        for item in records:
+            ledger.append(EvidenceRecord.model_validate(item))
+        return ledger
 
     def __len__(self) -> int:
         return len(self._records)
