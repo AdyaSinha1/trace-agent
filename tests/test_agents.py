@@ -96,3 +96,61 @@ def test_investigator_rejects_unknown_citations() -> None:
     record = state.ledger.get("x:inv:t")
     assert "ghost-id" not in record.values["cites"]
     assert "cf-rep1" in record.values["cites"]
+
+
+def test_challenger_signature_takes_no_investigator_reasoning() -> None:
+    import inspect
+
+    from agents.challenger import Challenger
+
+    params = [p for p in inspect.signature(Challenger.challenge).parameters if p != "self"]
+    assert params == ["leader_id", "ledger"]  # only the leader + raw ledger
+
+
+def test_challenger_deterministic_contradictions_and_missing() -> None:
+    from agents.challenger import Challenger
+
+    state, loaded = make_state("rainfall_reversal")
+    for record in load_scenario(SCENARIOS / "rainfall_reversal.json").injected_evidence:
+        state.ledger.append(record)
+    challenger = Challenger(loaded, llm=None)  # LLM off
+    contradictions, missing = challenger.challenge("factory_discharge", state.ledger)
+    ids = {i for c in contradictions for i in c["ledger_ids"]}
+    assert "rr-inj1" in ids and "rr-inj5" in ids  # rainfall gauge + lab contradict the leader
+    assert any(m["what"] in {"lab_ammonia", "lab_conductivity"} for m in missing)
+    assert not state.ledger.validate_citations(list(ids))
+
+
+def test_challenger_rejects_unknown_ids_and_conclusions() -> None:
+    from agents.challenger import Challenger
+
+    state, loaded = make_state("clear_factory")
+    mock = MockLLM(
+        structured={
+            "contradictions": [
+                {"ledger_ids": ["ghost-id"], "why": "unknown id item"},
+                {"ledger_ids": ["cf-rep1"], "why": "Therefore the factory is guilty"},
+                {"ledger_ids": ["cf-rep1"], "why": "cf-rep1 conflicts with the discharge rule"},
+            ],
+            "missing_evidence": [
+                {"what": "not_a_type", "why": "bogus"},
+                {"what": "lab_ammonia", "why": "an ammonia test would discriminate"},
+            ],
+        }
+    )
+    contradictions, missing = Challenger(loaded, llm=mock).challenge("factory_discharge", state.ledger)
+    llm_contr = [c for c in contradictions if c["why"].startswith("LLM:")]
+    assert len(llm_contr) == 1  # ghost id + conclusion rejected
+    assert all("Therefore" not in c["why"] for c in contradictions)
+    assert [m["what"] for m in missing if m["why"].startswith("LLM:")] == []  # deduped: deterministic already found it
+    assert sum(1 for m in missing if m["what"] == "lab_ammonia") == 1
+    assert all(m["what"] != "not_a_type" for m in missing)  # bogus type rejected
+
+
+def test_challenger_never_touches_scores() -> None:
+    from agents.challenger import Challenger
+
+    state, loaded = make_state("clear_factory")
+    before = state.ranking_history, state.leader
+    Challenger(loaded, llm=None).challenge("factory_discharge", state.ledger)
+    assert (state.ranking_history, state.leader) == before
