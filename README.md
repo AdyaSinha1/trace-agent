@@ -1,32 +1,58 @@
 # Trace (`trace-agent`)
 
-An investigator that tries to prove itself wrong: for a simulated incident it ranks three
-competing explanations, challenges its own leader against raw evidence, re-ranks when new
-evidence arrives (explaining why), and recommends the next measurement that best separates
-the remaining explanations.
+An investigator that tries to prove itself wrong. For a simulated water-pollution incident it
+ranks three competing explanations (factory discharge, storm runoff, upstream source), challenges
+its own leading hypothesis against raw evidence, re-ranks when new evidence arrives and explains
+why, and recommends the next measurement that best separates the remaining explanations.
 
-**Status: Step 1 skeleton.** Config-driven, domain-agnostic engine; scoring, agents and
-workflow land in later steps. Three agents share one append-only evidence ledger — no fourth
-agent, and the LLM never sets a score.
+**Process:** data ingestion -> intelligent decision-making -> action execution -> outcome reporting.
+**Architecture:** three agents sharing one append-only evidence ledger — Investigator (LLM +
+deterministic tools), Challenger (rules first, LLM only if enabled; sees only the leader + raw
+ledger), Judge (pure Python; the only component that scores). The LLM never sets or edits a score.
 
-## Run (offline — no API key needed)
+## Setup
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python cli.py --offline      # CLI smoke run
-.venv\Scripts\streamlit run app.py         # dashboard skeleton
-.venv\Scripts\python -m pytest             # tests
 ```
 
-## Online LLM (optional)
+## One-command offline demo (no API key)
 
-Copy `.env.example` to `.env`, then set `GROQ_API_KEY` and `GROQ_MODEL`. There is **no guessed
-default**: an online call without `GROQ_MODEL` hard-fails with a clear message. `--offline`
-mode always works with no key.
+```powershell
+.venv\Scripts\python cli.py --domain water_utility --scenario rainfall_reversal --inject --approve --offline --report demo_report.md
+```
 
-## Honesty / limitations
+Or the UI: `.venv\Scripts\streamlit run app.py` -> pick the rainfall scenario -> Open investigation
+-> Board (inject) -> Challenge/Next test -> Approval. Tests: `.venv\Scripts\python -m pytest`.
 
-All data is simulated. Weights are expert-assigned priors, not fitted. Scores are **evidence
-scores, not probabilities**. Evaluation runs on simulated scenarios and gives no real-world
-validation. Nothing is ever sent — alerts are drafts awaiting human approval. See `docs/`.
+## Limitations (honest)
+
+- **All data and all actions are simulated.** Work orders are JSON files marked "simulated";
+  notifications are drafts marked "DRAFT, NOT SENT"; nothing is ever sent.
+- Weights are **expert-assigned priors** (structured-analysis/ACH practice), **not fitted** to data.
+- Scores are **evidence scores, not probabilities**; a narrow margin is labelled not separable.
+- **Evaluation against baselines is NOT completed** — `evaluate.py` was written but has not been
+  run/verified; no baseline numbers are claimed anywhere.
+- **No real-world validation.** Six hand-built scenarios plus seeded noisy variants only.
+
+## Adding a domain pack (6 lines)
+
+1. Create `domains/<your_domain>/pack.json` with hypotheses, evidence types (tier, weight,
+   rationale), relation rules, tests, action templates, thresholds.
+2. Optionally add `features.py` with pure-Python extractors (raw readings -> evidence items)
+   registered in `EXTRACTORS`.
+3. Add scenarios as JSON under `domains/<your_domain>/scenarios/` (format documented in
+   `core/datasource.py`).
+4. Nothing else: the engine, agents, Judge, state machine and UI read everything from the pack.
+5. See `domains/water_utility/` as the reference and `tests/fixtures/fake_pack.json` for a
+   minimal example that runs Judge, sensitivity and next-test with zero code changes.
+6. Run `pytest` — the fake-pack engine test proves nothing is hard-coded to water.
+
+## Deploy (Streamlit Community Cloud)
+
+- Main file: `app.py`. Python 3.12. `requirements.txt` pinned.
+- No secrets needed: offline mode is the default (`llm_enabled=false` in `config/policy.json`);
+  the app runs with no API key. Optional online LLM: set `GROQ_API_KEY` and `GROQ_MODEL` as
+  Streamlit secrets or env vars — a missing `GROQ_MODEL` hard-fails online calls (no guessed
+  default). Read-only filesystems fall back to a temp directory for `outbox/` and `.cache/`.
