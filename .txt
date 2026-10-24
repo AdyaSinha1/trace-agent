@@ -1,0 +1,1 @@
+[35m.env.example[m[36m:[m[32m2[m[36m:[m[1;31mGROQ_API_KEY=<your-groq-api-key>[m

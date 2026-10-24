@@ -1,86 +1,56 @@
-"""Trace UI (Streamlit) — Step 1 skeleton. Generic: every label comes from a DomainPack.
-
-Scores are labelled "evidence scores, not probabilities" everywhere; data is simulated;
-no source is confirmed. Engine panels land in S4/S8.
-"""
-
+"""Trace UI (Streamlit) — Case Desk: open an investigation offline. All labels come from the pack."""
 from __future__ import annotations
 
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
-from dotenv import load_dotenv
 
-from core.domain import discover_packs, load_pack
-from core.policy import load_policy
+from ui.common import chrome, load_css, open_investigation, pack, policy, scenarios
 
-load_dotenv()
+st.set_page_config(page_title="Trace", layout="wide")
+load_css()
+chrome()
 
-st.set_page_config(page_title="Trace", page_icon=None, layout="wide")
-st.title("Trace — the investigator that tries to prove itself wrong")
-st.caption(
-    "Evidence scores, not probabilities. Simulated data. No source is confirmed. "
-    "Alert drafts are never sent — a human approves or rejects."
-)
+st.title("Trace — Case Desk")
+st.caption("The investigator that tries to prove itself wrong. Offline by default: "
+           "template hypotheses, deterministic Challenger rules, no API key needed.")
 
-policy = load_policy()
-pack_dirs = discover_packs()
+loaded = pack()
+pol = policy()
+names = scenarios()
 
-if not pack_dirs:
-    st.error("No domain packs found under domains/ (expected domains/*/pack.json).")
-    st.stop()
-
-pack_name = st.sidebar.selectbox(
-    "Domain pack", [d.name for d in pack_dirs], format_func=lambda n: n.replace("_", " ")
-)
-loaded = load_pack(Path("domains") / pack_name)
-pack = loaded.pack
-
-st.sidebar.subheader("Policy")
-st.sidebar.write(
-    {
-        "max_rounds": policy.max_rounds,
-        "min_total_weight": policy.min_total_weight,
-        "separability_cutoff": policy.separability_cutoff,
-        "llm_enabled": policy.llm_enabled,
-        "external_notifications": policy.external_notifications,
-    }
-)
-
-col1, col2 = st.columns(2)
-
+col1, col2 = st.columns([2, 1])
 with col1:
-    st.subheader("Competing hypotheses")
-    for h in pack.hypotheses:
-        st.markdown(f"- **{h.id}** — {h.label}")
-
-    st.subheader("Candidate tests")
-    st.dataframe(
-        pd.DataFrame(
-            [
-                {"id": t.id, "test": t.label, "cost": t.cost, "rationale": t.rationale}
-                for t in pack.tests
-            ]
-        ),
-        use_container_width=True,
-        hide_index=True,
-    )
-
+    scenario_id = st.selectbox("Scenario", names, index=names.index("rainfall_reversal") if "rainfall_reversal" in names else 0)
 with col2:
-    st.subheader("Evidence types (expert priors, not fitted)")
-    st.dataframe(
-        pd.DataFrame(
-            [
-                {"id": et.id, "tier": et.tier, "weight": et.weight, "rationale": et.rationale}
-                for et in pack.evidence_types
-            ]
-        ),
-        use_container_width=True,
-        hide_index=True,
-    )
+    st.write("")  # alignment
+    if st.button("Open investigation", use_container_width=True):
+        state = open_investigation(scenario_id)
+        st.success(f"Opened {scenario_id}: status {state.status.value}, round {state.round}")
 
-    st.subheader("Relation rules (derived, never hand-labelled)")
-    st.write(f"{len(pack.relation_rules)} rules in pack.json")
+state = st.session_state.get("state")
+if state is not None:
+    st.subheader("Current case")
+    snapshot = state.ranking_history[-1] if state.ranking_history else None
+    if snapshot:
+        ranked = ", ".join(f"{loaded.pack.hypothesis_label(h)}: {s:.0f}" for h, s in sorted(snapshot.scores.items(), key=lambda kv: -kv[1]))
+        st.markdown(f"**Leader:** {loaded.pack.hypothesis_label(state.leader or 'n/a')}  \n"
+                    f"**Evidence scores, not probabilities:** {ranked}")
+    else:
+        st.info("No ranking emitted (INSUFFICIENT_EVIDENCE).")
+    st.write(f"Status: `{state.status.value}` | Round: {state.round} of {pol.max_rounds}")
 
-st.info("Step 1 skeleton: ranking, agents, workflow and reliability panels land in S2+.")
+st.divider()
+st.subheader("Domain pack")
+st.write(f"**{loaded.pack.name}** — {loaded.pack.description}")
+st.dataframe(
+    pd.DataFrame([{"hypothesis": h.id, "label": h.label} for h in loaded.pack.hypotheses]),
+    use_container_width=True, hide_index=True,
+)
+st.dataframe(
+    pd.DataFrame([{"evidence type": et.id, "tier": et.tier, "weight": et.weight, "rationale": et.rationale}
+                  for et in loaded.pack.evidence_types]),
+    use_container_width=True, hide_index=True,
+)
+st.caption("Weights are expert-assigned priors (ACH practice), not fitted to data.")

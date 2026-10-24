@@ -18,8 +18,8 @@ Updated after every part so work can resume after a context loss. Working dir:
 | 3C | Challenger | done | 35 passed |
 | 3D | Workflow / state machine (LangGraph driver verified) | done | 46 passed |
 | 3E | Actions + outcome report | done | 46 passed |
-| 3F | CLI + workflow tests | in progress | — |
-| 4A | Evaluation + baselines (results.md/results.json) | pending | — |
+| 3F | CLI + workflow tests | done | 47 passed |
+| 4A | Evaluation + baselines (results.md/results.json) | in progress | — |
 | 4B | docs/governance.md | pending | — |
 | 4C | core/roi.py | pending | — |
 | 4D | Deploy prep + healthcheck | pending | — |

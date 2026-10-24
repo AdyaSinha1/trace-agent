@@ -1,0 +1,49 @@
+/* Trace UI theme: paper #f2ecdf, ink #1c2a2e, teal #2d5a5f, brick #b0432a (contradictions/warnings only). */
+:root {
+  --paper: #f2ecdf;
+  --ink: #1c2a2e;
+  --teal: #2d5a5f;
+  --brick: #b0432a;
+}
+.stApp {
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 0;
+}
+h1, h2, h3, h4 {
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--teal);
+}
+#MainMenu, header, footer, [data-testid="stToolbar"] { visibility: hidden; }
+.stApp > header { display: none; }
+.block-container { padding-top: 2.2rem; }
+.stDataFrame, .stJson, code, pre, .stMarkdown code {
+  font-family: Consolas, "Courier New", monospace;
+  border-radius: 0;
+}
+.stButton > button {
+  border-radius: 0;
+  background: var(--teal);
+  color: #f2ecdf;
+  border: 1px solid var(--ink);
+}
+.stDownloadButton > button { border-radius: 0; }
+[data-testid="stAlert"] { border-radius: 0; }
+.trace-stamp {
+  position: fixed; top: 8px; right: 14px; z-index: 999;
+  font-family: Georgia, serif; font-size: 12px; letter-spacing: 2px;
+  color: var(--brick); border: 2px solid var(--brick); padding: 3px 8px;
+  transform: rotate(4deg); background: transparent;
+}
+.trace-footer {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+  font-family: Consolas, monospace; font-size: 11px;
+  background: var(--ink); color: var(--paper); padding: 3px 10px;
+}
+.trace-contradiction {
+  color: var(--brick); border-left: 4px solid var(--brick);
+  padding-left: 8px;
+}
+.trace-leader {
+  border: 2px solid var(--teal); padding: 4px 8px;
+}
